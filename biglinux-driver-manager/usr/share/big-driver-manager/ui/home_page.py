@@ -24,6 +24,7 @@ from core.driver_installer import DriverInstaller
 from ui.base_page import PackageOperationMixin
 from utils.accessibility import animations_enabled
 from utils.i18n import _
+from core.desktop import app_title
 
 if TYPE_CHECKING:
     from core.driver_database import DriverModule
@@ -93,6 +94,15 @@ class HomePage(PackageOperationMixin, Gtk.Box):
             css_variant="intro-drivers",
         )
         self._intro_row.append(drivers_card)
+
+        update_note = Gtk.Label(label=(
+            "Treiberinstallationen schließen eine vollständige Systemaktualisierung ein. Ein Neustart kann danach erforderlich sein."
+            if app_title() == "Geräte-Manager" else
+            "Driver installations include a full system update. A restart may be needed afterwards."))
+        update_note.set_wrap(True)
+        update_note.set_xalign(0)
+        update_note.add_css_class("dim-label")
+        self._content_box.append(update_note)
 
         # Alert container (populated dynamically)
         self._alert_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)

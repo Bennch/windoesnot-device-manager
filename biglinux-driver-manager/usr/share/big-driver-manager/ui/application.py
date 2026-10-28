@@ -31,6 +31,7 @@ from utils.ui_constants import (
     WINDOW_MIN_WIDTH,
 )
 from utils.style_manager import StyleManager
+from utils.desktop_style import DesktopStyle
 from ui.window import KernelManagerWindow
 
 
@@ -171,6 +172,8 @@ class KernelManagerApplication(Adw.Application):
         style_mgr = StyleManager.get_default()
         if not style_mgr.load_styles():
             self._logger.warning("Failed to load application CSS")
+
+        self.desktop_style = DesktopStyle()
 
         # Register custom icon search path
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

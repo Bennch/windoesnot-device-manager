@@ -11,16 +11,16 @@ and configuration values.
 import os
 
 # Application Metadata
-APP_NAME = "Big Driver Manager"
-APP_ID = "br.com.biglinux.drivermanager"
-APP_VERSION = "2.0.1"
-APP_AUTHOR = "BigLinux Team"
-APP_WEBSITE = "https://github.com/communitybig/big-driver-manager"
+APP_NAME = "WinDoesNot Device Manager"
+APP_ID = "me.windoesnot.DeviceManager"
+APP_VERSION = "0.1.0"
+APP_AUTHOR = "WinDoesNot and BigLinux contributors"
+APP_WEBSITE = "https://github.com/Bennch/windoesnot-device-manager"
 
 # Paths
-CONFIG_DIR = os.path.expanduser("~/.config/big-driver-manager")
+CONFIG_DIR = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"), "windoesnot-device-manager")
 SETTINGS_FILE = os.path.join(CONFIG_DIR, "settings.json")
-LOG_DIR = os.path.expanduser("~/.local/share/big-driver-manager/logs")
+LOG_DIR = os.path.join(os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"), "windoesnot-device-manager/logs")
 LOG_FILE = os.path.join(LOG_DIR, "app.log")
 
 # Package Manager Settings
@@ -43,6 +43,7 @@ KERNEL_PATTERNS = [
     r"^linux-xanmod-lts-x64v\d$",  # Xanmod LTS optimized builds
     r"^linux-cachyos$",  # CachyOS kernel
     r"^linux-cachyos-lts$",  # CachyOS LTS kernel
+    r"^linux-cachyos-(bore|rt-bore|eevdf|bmq|server)$",
     r"^linux-big$",  # BigCommunity kernel (big-kernel), see BIG_KERNEL
 ]
 

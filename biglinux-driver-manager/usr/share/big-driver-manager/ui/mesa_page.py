@@ -1103,7 +1103,12 @@ class MesaSection(PackageOperationMixin, BaseSection):
         row.append(text_col)
 
         # Action button
-        if driver.installed:
+        if driver.installed and driver.name.startswith("chwd:"):
+            btn = Gtk.Button(label=_("Reinstall"))
+            btn.set_valign(Gtk.Align.CENTER)
+            btn.connect("clicked", self._on_mhwd_install_clicked, driver)
+            row.append(btn)
+        elif driver.installed:
             rm_btn = Gtk.Button(label=_("Remove"))
             rm_btn.add_css_class("destructive-action")
             rm_btn.set_valign(Gtk.Align.CENTER)
@@ -1163,6 +1168,8 @@ class MesaSection(PackageOperationMixin, BaseSection):
 
     def _can_install_nvidia_cached(self, driver_name: str) -> tuple[bool, str]:
         """Check nvidia conflict using pre-computed installed driver info."""
+        if driver_name.startswith("chwd:"):
+            return True, ""
         if "nvidia" not in driver_name.lower():
             return True, ""
         existing = self._nvidia_installed_name

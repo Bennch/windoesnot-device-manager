@@ -14,7 +14,7 @@ what stops them from drifting apart.
 import os
 import re
 
-CLI_BIN = os.environ.get("BDM_CLI_BIN", "/usr/bin/big-driver-manager-cli")
+CLI_BIN = os.environ.get("BDM_CLI_BIN", "/usr/bin/windoesnot-drivers")
 PKEXEC = "pkexec"
 PACMAN = "/usr/bin/pacman"
 MHWD = "/usr/bin/mhwd"
@@ -68,6 +68,8 @@ def cli_to_pacman(verb: str, flags: list[str], packages: list[str]) -> list[str]
     options = _PACMAN_FORMS.get((verb, tuple(flags)))
     if options is None:
         raise PrivilegedRequestError(f"unsupported request: {verb} {' '.join(flags)}")
+    options = list(options)
+    if options[0] == "-S": options[0] = "-Syu"
     return [*options, *validate_packages(packages)]
 
 
@@ -98,7 +100,7 @@ def pacman_command(args: list[str]) -> list[str]:
     """
     verb = pacman_to_cli(args)
     if is_root():
-        return [PACMAN, *args]
+        return [PACMAN, *cli_to_pacman(verb[0], verb[1:verb.index("--")], verb[verb.index("--")+1:])]
     return [PKEXEC, CLI_BIN, *verb]
 
 

@@ -26,6 +26,7 @@ from ui.base_page import (
 )
 from utils.desc_translate import translate_description
 from utils.i18n import _
+from core.desktop import app_title
 from utils.tooltip_helper import TooltipHelper, build_tooltip_body
 
 # Threshold above which items are grouped by brand instead of flat list.
@@ -558,6 +559,13 @@ class CategorySection(BaseSection):
             if not covered:
                 btn.add_css_class("suggested-action")
             btn.connect("clicked", self._on_install_clicked, item)
+            if getattr(item, "in_repo", None) is False:
+                # AUR is managed by the WinDoesNot Store, not BigLinux's pamac.
+                btn.set_sensitive(False)
+                btn.set_tooltip_text(
+                    "AUR-Paket: Bitte im WinDoesNot Store nach „{}“ suchen.".format(item.name)
+                    if app_title() == "Geräte-Manager" else
+                    "AUR package: Search for '{}' in WinDoesNot Store.".format(item.name))
 
         btn.set_valign(Gtk.Align.CENTER)
         btn.update_property(

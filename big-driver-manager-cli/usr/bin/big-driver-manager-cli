@@ -12,6 +12,7 @@ import argparse
 import logging
 import os
 import sys
+import subprocess
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
@@ -45,18 +46,18 @@ EXIT_USAGE = 2
 EXIT_NOT_ROOT = 77
 
 
-PROG_NAMES = ("big-drivers", "big-driver-manager-cli")
+PROG_NAMES = ("windoesnot-drivers",)
 
 
 def _examples(prog: str) -> str:
     lines = [
         (f"{prog} kernel list", _("kernels you can install")),
-        (f"{prog} kernel install linux-big", _("a kernel with its modules")),
-        (f"{prog} kernel remove linux612", _("a kernel and its modules")),
+        (f"{prog} kernel install linux-cachyos", _("a kernel with its modules")),
+        (f"{prog} kernel remove linux-cachyos-lts", _("a kernel and its modules")),
         (f"{prog} gpu", _("graphics cards and their drivers")),
-        (f"{prog} gpu install", _("the drivers this machine needs")),
-        (f"{prog} gpu mode hybrid", _("which GPU draws the screen")),
-        (f"{prog} mesa apply tkg-stable", _("switch the Mesa variant")),
+        (f"{prog} profile install intel", _("the drivers this machine needs")),
+        (f"{prog} profile install nvidia-open-dkms", _("which GPU draws the screen")),
+        (f"{prog} mesa list", _("switch the Mesa variant")),
     ]
     width = max(term.width(command) for command, _text in lines)
     body = "\n".join(
@@ -80,7 +81,7 @@ def _parser(prog: str = "big-drivers") -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=prog,
         description=_(
-            "Drivers and kernels for BigLinux and BigCommunity: detect the "
+            "Drivers and kernels for WinDoesNot: detect the "
             "hardware, install the graphics drivers, install kernels together "
             "with their modules."
         ),
@@ -101,6 +102,10 @@ def _parser(prog: str = "big-drivers") -> argparse.ArgumentParser:
         help=_("colors: auto (terminal only), always or never; also --no-color"),
     )
     verbs = parser.add_subparsers(dest="verb", metavar=_("COMMAND"))
+
+    profile = verbs.add_parser("profile", help="CachyOS graphics profiles")
+    profile.add_argument("action", choices=("install",))
+    profile.add_argument("name")
 
     kernel_cli.add_parser(verbs)
     gpu_cli.add_parser(verbs)
@@ -191,6 +196,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.verb is None:
         parser.print_help()
         return 0
+    if args.verb == "profile":
+        from core.chwd import install
+        if not is_root(): return kernel_cli.elevate(argv)
+        try: return install(args.name)
+        except (ValueError, OSError, subprocess.SubprocessError) as error:
+            print(str(error), file=sys.stderr)
+            return EXIT_USAGE
+    if args.verb == "mhwd" or (args.verb == "gpu" and args.gpu_action not in (None, "detect", "status", "check", "plan")):
+        parser.error("Use the native CachyOS graphics profiles")
+    # Recalculate kernel/Mesa plans after updating, not from an old database.
+    if is_root() and ((args.verb == "kernel" and getattr(args, "kernel_action", None) == "install")
+                     or (args.verb == "mesa" and getattr(args, "mesa_action", None) == "apply")):
+        result = subprocess.run([PACMAN, "-Syu", "--noconfirm"], env={**os.environ, "LC_ALL": "C", "LANG": "C"})
+        if result.returncode: return result.returncode
     if args.verb == "kernel":
         return kernel_cli.run(args)
     if args.verb == "gpu":

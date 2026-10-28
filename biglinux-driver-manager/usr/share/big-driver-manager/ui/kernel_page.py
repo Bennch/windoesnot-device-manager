@@ -198,7 +198,7 @@ class KernelSection(BaseSection):
             [
                 k
                 for k in self._all_kernels
-                if not k.get("installed") and not k.get("cachyos")
+                if not k.get("installed")
             ],
             key=version_sort_key,
             reverse=True,

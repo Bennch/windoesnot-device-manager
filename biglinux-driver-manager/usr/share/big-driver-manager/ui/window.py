@@ -18,6 +18,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Gio, Adw, GLib, Gdk, Pango
 
 from core.constants import APP_NAME
+from core.desktop import app_title
 from utils.ui_constants import WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT
 from core.driver_database import DriverDatabase
 from core.hardware_detect import (
@@ -44,11 +45,6 @@ from ui.category_page import CategorySection
 from ui.progress_dialog import ProgressDialog
 from utils.accessibility import animations_enabled
 from utils.i18n import _
-
-try:
-    from big_gnome_center_material import attach_window_material
-except ImportError:
-    attach_window_material = None
 
 # Warn before installing when the package database is older than this
 _STALE_SYNC_DAYS = 14
@@ -171,12 +167,11 @@ class KernelManagerWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.add_css_class("big-driver-manager")
-        if attach_window_material is not None:
-            self._window_material = attach_window_material(self, "big-driver-manager")
+        self.add_css_class("windoesnot-device-manager")
         self._logger = get_logger("Window")
         self._detection_in_progress = False
         self._refresh_pending = False
-        self.set_title(APP_NAME)
+        self.set_title("WinDoesNot " + app_title())
         self.set_default_size(WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT)
         self.set_size_request(360, 480)
         self.set_resizable(True)
@@ -241,7 +236,7 @@ class KernelManagerWindow(Adw.ApplicationWindow):
         sidebar_toolbar = Adw.ToolbarView()
 
         sidebar_header = Adw.HeaderBar()
-        sidebar_title = Adw.WindowTitle.new(APP_NAME, "")
+        sidebar_title = Adw.WindowTitle.new(app_title(), "WinDoesNot")
         sidebar_header.set_title_widget(sidebar_title)
         sidebar_toolbar.add_top_bar(sidebar_header)
 
@@ -910,11 +905,11 @@ class KernelManagerWindow(Adw.ApplicationWindow):
 
         about = Adw.AboutDialog(
             application_name=APP_NAME,
-            application_icon="big-driver-manager",
+            application_icon="me.windoesnot.DeviceManager",
             version=APP_VERSION,
             developer_name=APP_AUTHOR,
             website=APP_WEBSITE,
-            issue_url="https://github.com/communitybig/big-driver-manager/issues",
+            issue_url="https://github.com/Bennch/windoesnot-device-manager/issues",
             copyright="© 2024-2025 BigLinux Team",
             license_type=Gtk.License.MIT_X11,
             developers=[APP_AUTHOR],

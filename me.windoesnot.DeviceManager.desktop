@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Device Manager
+Name[de]=Geräte-Manager
+GenericName=Hardware and drivers
+GenericName[de]=Hardware und Treiber
+Comment=Manage devices and CachyOS drivers
+Comment[de]=Geräte und CachyOS-Treiber verwalten
+Exec=windoesnot-device-manager
+Icon=me.windoesnot.DeviceManager
+Terminal=false
+Categories=Settings;HardwareSettings;
+StartupNotify=true
+Keywords=Hardware;Drivers;Devices;
+Keywords[de]=Hardware;Treiber;Geräte;

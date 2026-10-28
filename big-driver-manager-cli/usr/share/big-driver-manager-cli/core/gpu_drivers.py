@@ -54,7 +54,7 @@ class VideoDriver:
 
     @property
     def display_name(self) -> str:
-        return self.name.replace("-", " ")
+        return self.name.removeprefix("chwd:").replace("-", " ")
 
 
 def _versions(packages: list[str]) -> dict[str, str]:
@@ -136,6 +136,16 @@ class GpuDriverManager(BaseManager):
         self._logger = _logger
 
     def get_video_drivers(self) -> list[VideoDriver]:
+        from core.chwd import profiles
+        available, installed_profiles = profiles(), profiles(installed=True)
+        if available:
+            return [VideoDriver(name="chwd:" + name, free_driver="nvidia" not in name or "open" in name,
+                info="CachyOS", priority=priority, installed=name in installed_profiles,
+                compatible=True, recommended=priority >= 4)
+                for name, priority in available.items()]
+        return []
+
+    def _upstream_video_drivers(self) -> list[VideoDriver]:
         installed = gpu.installed_packages()
         return list_video_drivers(
             gpu.scan_pci(),
@@ -159,6 +169,8 @@ class GpuDriverManager(BaseManager):
         """Kept for the interface. Switching branches is safe now (the old one
         is replaced in the same command), so only the remove-first rule of
         mhwd is kept for parity."""
+        if name.startswith("chwd:"):
+            return True, ""
         if "nvidia" not in name.lower():
             return True, ""
         existing = self.has_nvidia_installed()
@@ -175,6 +187,10 @@ class GpuDriverManager(BaseManager):
         output_callback: Callable | None = None,
         complete_callback: Callable | None = None,
     ) -> None:
+        if driver.name.startswith("chwd:"):
+            self.run_cli_command(["profile", "install", driver.name.partition(":")[2]],
+                progress_callback, output_callback, complete_callback, _("Installing {}").format(driver.display_name))
+            return
         args = ["gpu", "install"]
         if driver.branch:
             args += ["--nvidia-branch", driver.branch]

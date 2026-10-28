@@ -13,6 +13,8 @@ import signal
 import sys
 
 import core_path  # noqa: F401  (must precede the ui and core imports)
+from core.desktop import prepare_language
+prepare_language()
 from ui.application import KernelManagerApplication
 
 

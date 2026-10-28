@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+app=/usr/share/big-driver-manager/main.py
+if [[ -f $app ]]; then exec /usr/bin/python3 "$app" "$@"; fi
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+export BDM_CLI_DIR="$root/big-driver-manager-cli/usr/share/big-driver-manager-cli"
+exec /usr/bin/python3 "$root/biglinux-driver-manager/usr/share/big-driver-manager/main.py" "$@"

@@ -1,67 +1,41 @@
-# Maintainer: Bruno Goncalves <bigbruno@gmail.com>
-# Maintainer: Tales A. Mendonça <talesam@gmail.com>
+# WinDoesNot fork of BigLinux Driver Manager. Preserve both upstream licenses.
+pkgbase=windoesnot-device-manager
+pkgname=(windoesnot-device-manager-core windoesnot-device-manager)
+pkgver=0.1.0
+pkgrel=1
+arch=(any)
+url='https://github.com/Bennch/windoesnot-device-manager'
+license=(MIT GPL-3.0-or-later)
+# Sources are an explicit local snapshot; never download main during a build.
+source=(windoesnot-device-manager-source.tar.gz)
+sha256sums=('SKIP')
 
-# One repository, two packages, each from its own directory:
-#   big-driver-manager-cli/   the command line (big-drivers) and the core
-#   biglinux-driver-manager/  the graphical interface, which imports that core
-pkgbase=biglinux-driver-manager
-pkgname=(big-driver-manager-cli biglinux-driver-manager)
-pkgdesc="Application to manage kernel and mesa drivers for BigLinux"
-pkgver=$(date +%y.%m.%d)
-pkgrel=$(date +%H%M)
-epoch=1
-arch=('any')
-license=('MIT')
-url="https://github.com/biglinux/${pkgbase}"
-# The build-package workflow exports the branch it builds (dev-* for testing).
-source=("git+${url}.git#branch=${BIGLINUX_GIT_BRANCH:-main}")
-md5sums=('SKIP')
-
-_install_tree() {
-    cd "${srcdir}/${pkgbase}/${pkgname}"
-
-    # The directory mirrors the final install prefix (usr/...)
-    cp -a usr "${pkgdir}/"
-
-    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-    install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+package_windoesnot-device-manager-core() {
+    pkgdesc='WinDoesNot hardware detection and CachyOS driver management'
+    license=(GPL-3.0-or-later)
+    depends=(python pacman polkit pciutils usbutils chwd)
+    conflicts=(big-driver-manager-cli)
+    cd "$srcdir/windoesnot-device-manager"
+    install -d "$pkgdir/usr/share"
+    cp -a big-driver-manager-cli/usr/share/big-driver-manager-cli "$pkgdir/usr/share/"
+    install -Dm755 big-driver-manager-cli/usr/bin/big-drivers "$pkgdir/usr/bin/windoesnot-drivers"
+    install -Dm644 big-driver-manager-cli/usr/share/polkit-1/actions/me.windoesnot.DeviceManager.policy "$pkgdir/usr/share/polkit-1/actions/me.windoesnot.DeviceManager.policy"
+    if [[ -d big-driver-manager-cli/usr/share/locale ]]; then cp -a big-driver-manager-cli/usr/share/locale "$pkgdir/usr/share/"; fi
+    install -Dm644 big-driver-manager-cli/LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    # No BigLinux boot services, udev auto-installers or display-manager overrides.
 }
 
-package_big-driver-manager-cli() {
-    pkgdesc="Command line and core of Big Driver Manager: detects hardware and installs drivers, kernels and Mesa"
-    license=('GPL-3.0-or-later')
-    depends=('python' 'pacman' 'polkit' 'pciutils' 'usbutils' 'nvidia-driver-assistant'
-             'switcheroo-control')
-    optdepends=(
-        'nvidia-prime: prime-run, render offload to the NVIDIA GPU'
-        'xorg-xrandr: NVIDIA as the primary GPU in Xorg sessions'
-        'mhwd: the old mhwd video configurations (still listed by the interface)'
-        'avahi: discover network printers and scanners'
-        'pamac-gtk: build drivers that only exist in the AUR'
-    )
-    # Graphics drivers and hybrid GPU modes moved here from mhwd-biglinux
-    # (biglinux-gpu-manager, nvidia-manager-verify.service).
-    provides=('mhwd-biglinux')
-    conflicts=('mhwd-biglinux')
-    replaces=('mhwd-biglinux')
-    install=big-driver-manager-cli.install
-
-    _install_tree
-}
-
-package_biglinux-driver-manager() {
-    depends=(
-        'big-driver-manager-cli'
-        'python>=3.10'
-        'python-gobject'
-        'gtk4'
-        'libadwaita'
-        'polkit'
-        'hicolor-icon-theme'
-        'avahi'
-        'nss-mdns'
-    )
-    install=biglinux-driver-manager.install
-
-    _install_tree
+package_windoesnot-device-manager() {
+    pkgdesc='WinDoesNot Device Manager, adapted from BigLinux'
+    license=(MIT)
+    depends=(windoesnot-device-manager-core python-gobject gtk4 libadwaita hicolor-icon-theme)
+    conflicts=(biglinux-driver-manager)
+    cd "$srcdir/windoesnot-device-manager"
+    install -d "$pkgdir/usr/share"
+    cp -a biglinux-driver-manager/usr/share/big-driver-manager "$pkgdir/usr/share/"
+    if [[ -d biglinux-driver-manager/usr/share/locale ]]; then cp -a biglinux-driver-manager/usr/share/locale "$pkgdir/usr/share/"; fi
+    install -Dm755 windoesnot-device-manager "$pkgdir/usr/bin/windoesnot-device-manager"
+    install -Dm644 me.windoesnot.DeviceManager.desktop "$pkgdir/usr/share/applications/me.windoesnot.DeviceManager.desktop"
+    install -Dm644 me.windoesnot.DeviceManager.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/me.windoesnot.DeviceManager.png"
+    install -Dm644 biglinux-driver-manager/LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
