@@ -336,23 +336,14 @@ class KernelManager(BaseManager):
             self._add_kernel_flags(kernel)
             filtered_kernels.append(kernel)
 
-        # Installed kernels the repos don't offer still belong on the page.
-        # Official-looking names that left the repos are EOL ("obsolete",
-        # handled by compute_obsolete_kernels); anything else is a
-        # third-party/self-built package or a manual install.
+        # Installed kernels always belong on the page, including when a sync
+        # database cannot be queried. Repository availability must never hide
+        # the running kernel or its installed fallback. Obsolete alerts are
+        # computed separately and require actual repository data.
         repo_names = {k["name"] for k in filtered_kernels}
         for kernel in installed_kernels:
-            if kernel["name"] in repo_names:
-                continue
-            if kernel.get("source") != "manual":
-                if (
-                    self._is_kernel_package(kernel["name"])
-                    and kernel["name"] != BIG_KERNEL
-                ):
-                    continue  # EOL official kernel -> obsolete alert
-                # Third-party/self-built, or linux-big with its repo disabled
-                kernel = {**kernel, "source": "local"}
-            filtered_kernels.append(kernel)
+            if kernel["name"] not in repo_names:
+                filtered_kernels.append(kernel)
 
         return sorted(filtered_kernels, key=lambda k: (k["name"], k["version"]))
 

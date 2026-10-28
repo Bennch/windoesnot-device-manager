@@ -27,6 +27,16 @@ class IntegrationTests(unittest.TestCase):
         obsolete = KernelManager.compute_obsolete_kernels(installed, [{'name': 'linux-cachyos'}], 'linux-cachyos')
         self.assertEqual([k['name'] for k in obsolete], ['linux-cachyos-lts'])
 
+    def test_installed_kernels_survive_missing_repository_results(self):
+        installed = [
+            {'name': 'linux-cachyos', 'version': '7.2.11-1', 'installed': True},
+            {'name': 'linux-cachyos-lts', 'version': '6.18.55-2', 'installed': True},
+        ]
+        manager = KernelManager()
+        with patch.object(manager, '_search_kernel_packages', return_value=[]), \
+             patch.object(manager, 'get_installed_kernels', return_value=installed):
+            self.assertEqual(manager.get_available_kernels(), installed)
+
     def test_preferences_are_data(self):
         self.assertEqual(parse_preferences('darkMode=false\naccentColor=#FE6F2D\nuiLanguage=de'),
                          dict(dark=False, accent='#fe6f2d', language='de'))
