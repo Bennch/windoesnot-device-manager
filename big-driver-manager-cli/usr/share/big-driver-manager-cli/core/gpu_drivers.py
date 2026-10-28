@@ -221,6 +221,10 @@ class GpuDriverManager(BaseManager):
         output_callback: Callable | None = None,
         complete_callback: Callable | None = None,
     ) -> None:
+        if driver.name.startswith("chwd:"):
+            self.run_cli_command(["profile", "remove", driver.name.partition(":")[2]],
+                progress_callback, output_callback, complete_callback, _("Removing {}").format(driver.display_name))
+            return
         if driver.branch:
             args = ["gpu", "remove"]
         else:

@@ -104,7 +104,7 @@ def _parser(prog: str = "big-drivers") -> argparse.ArgumentParser:
     verbs = parser.add_subparsers(dest="verb", metavar=_("COMMAND"))
 
     profile = verbs.add_parser("profile", help="CachyOS graphics profiles")
-    profile.add_argument("action", choices=("install",))
+    profile.add_argument("action", choices=("install", "remove"))
     profile.add_argument("name")
 
     kernel_cli.add_parser(verbs)
@@ -197,9 +197,9 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     if args.verb == "profile":
-        from core.chwd import install
+        from core import chwd
         if not is_root(): return kernel_cli.elevate(argv)
-        try: return install(args.name)
+        try: return getattr(chwd, args.action)(args.name)
         except (ValueError, OSError, subprocess.SubprocessError) as error:
             print(str(error), file=sys.stderr)
             return EXIT_USAGE

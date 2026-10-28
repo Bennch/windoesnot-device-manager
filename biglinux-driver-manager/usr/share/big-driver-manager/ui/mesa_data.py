@@ -244,50 +244,13 @@ def _init_purpose_sections() -> None:
 # Packages bundled (provided) by each Mesa variant.
 _MESA_BUNDLED: dict[str, frozenset[str]] = {
     "stable": frozenset({"libva-mesa-driver"}),
-    # mesa-big and lib32-mesa-big carry these, and provide their names:
-    # pacman -Q answers for them, so without this they would look installed
-    # and offer a Remove that has nothing to remove.
-    "big": frozenset(
-        {
-            "vulkan-intel",
-            "vulkan-radeon",
-            "vulkan-nouveau",
-            "vulkan-virtio",
-            "vulkan-mesa-layers",
-            "vulkan-mesa-implicit-layers",
-            "libva-mesa-driver",
-            "lib32-mesa",
-            "lib32-vulkan-intel",
-            "lib32-vulkan-radeon",
-            "lib32-vulkan-nouveau",
-            "lib32-vulkan-virtio",
-            "lib32-vulkan-mesa-layers",
-            "lib32-vulkan-mesa-implicit-layers",
-            "lib32-libva-mesa-driver",
-        }
-    ),
-    "tkg-stable": frozenset(
-        {
-            "vulkan-intel",
-            "vulkan-radeon",
-            "vulkan-nouveau",
-            "libva-mesa-driver",
-            "mesa-vdpau",
-            "opencl-mesa",
-            "vulkan-swrast",
-        }
-    ),
-    "tkg-git": frozenset(
-        {
-            "vulkan-intel",
-            "vulkan-radeon",
-            "vulkan-nouveau",
-            "libva-mesa-driver",
-            "mesa-vdpau",
-            "opencl-mesa",
-            "vulkan-swrast",
-        }
-    ),
+    "git": frozenset({
+        "vulkan-intel", "vulkan-radeon", "vulkan-nouveau", "vulkan-swrast",
+        "vulkan-mesa-layers", "libva-mesa-driver", "opencl-mesa",
+        "lib32-mesa", "lib32-vulkan-intel", "lib32-vulkan-radeon",
+        "lib32-vulkan-nouveau", "lib32-vulkan-swrast", "lib32-vulkan-mesa-layers",
+        "lib32-libva-mesa-driver", "lib32-opencl-mesa",
+    }),
 }
 
 
@@ -306,33 +269,9 @@ def _init_mesa_names() -> None:
                 "badge": _("Recommended"),
                 "badge_color": "success",
             },
-            "big": {
-                "title": _("BigCommunity"),
-                "desc": _(
-                    "The latest official Mesa release, built by BigCommunity "
-                    "with its own LLVM. New drivers sooner than the regular "
-                    "release, without extra patches."
-                ),
-                "badge": _("New"),
-                "badge_color": "accent",
-            },
-            "tkg-stable": {
-                "title": _("Performance"),
-                "desc": _(
-                    "Modified version with gaming optimizations for extra "
-                    "performance. Reliable for most users but may rarely "
-                    "cause instabilities."
-                ),
-                "badge": _("Performance"),
-                "badge_color": "accent",
-            },
-            "tkg-git": {
+            "git": {
                 "title": _("Development"),
-                "desc": _(
-                    "Built from the very latest source code with cutting-edge "
-                    "features. Offers the best gaming performance but is the "
-                    "least tested — only for advanced users."
-                ),
+                "desc": _("Latest development version with cutting-edge features"),
                 "badge": "DEV",
                 "badge_color": "danger",
             },
@@ -361,9 +300,7 @@ _ICONS_DIR = os.path.join(
 _MESA_ROW_ICONS: dict[str, str] = {
     "amber": "icon_mesa_row_legacy.svg",
     "stable": "icon_mesa_row_stable.svg",
-    "big": "icon_mesa_row_performance.svg",
-    "tkg-stable": "icon_mesa_row_performance.svg",
-    "tkg-git": "icon_mesa_row_development.svg",
+    "git": "icon_mesa_row_development.svg",
 }
 
 # Row-level SVG icons for GPU package categories
@@ -379,16 +316,9 @@ _CAT_ROW_ICONS: dict[str, str] = {
 def _visible_mesa_variants(
     drivers: list[dict], repo_set: set[str] | None
 ) -> list[dict]:
-    """The Mesa variants worth offering: installed, or in the repositories.
-
-    A variant whose package no enabled repository has (mesa-tkg where no
-    repository carries it, mesa-big outside BigCommunity) cannot be
-    installed, so it is not listed; the installed one always is, so it can
-    still be switched away from. With the repository list unknown (None),
-    every variant is listed.
-    """
+    """Keep the active variant visible; offer alternatives only with repo data."""
     if repo_set is None:
-        return list(drivers)
+        return [d for d in drivers if d.get("active")]
     return [
         d
         for d in drivers

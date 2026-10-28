@@ -1,81 +1,89 @@
 [
   {
-    "id": "amber",
-    "name": "Amber",
-    "detect_package": "mesa-amber",
-    "packages": ["mesa-amber", "lib32-mesa-amber"],
-    "conflicts": [
-      "mesa", "lib32-mesa", "mesa-git", "mesa-big", "lib32-mesa-big",
-      "mesa-tkg-stable", "lib32-mesa-tkg-stable",
-      "mesa-tkg-git", "lib32-mesa-tkg-git"
-    ],
-    "description": "Stable and well-tested version of Mesa"
-  },
-  {
     "id": "stable",
     "name": "Stable",
     "detect_package": "mesa",
     "packages": [
-      "mesa", "lib32-mesa",
-      "vulkan-radeon", "lib32-vulkan-radeon",
-      "vulkan-intel", "lib32-vulkan-intel",
-      "vulkan-nouveau", "lib32-vulkan-nouveau",
-      "vulkan-swrast", "lib32-vulkan-swrast",
+      "mesa",
+      "lib32-mesa",
+      "vulkan-radeon",
+      "lib32-vulkan-radeon",
+      "vulkan-intel",
+      "lib32-vulkan-intel",
+      "vulkan-nouveau",
+      "lib32-vulkan-nouveau",
+      "vulkan-swrast",
+      "lib32-vulkan-swrast",
       "mesa-utils"
     ],
     "conflicts": [
-      "mesa-amber", "lib32-mesa-amber", "mesa-git", "mesa-big", "lib32-mesa-big",
-      "mesa-tkg-stable", "lib32-mesa-tkg-stable",
-      "mesa-tkg-git", "lib32-mesa-tkg-git"
+      "mesa-amber",
+      "lib32-mesa-amber",
+      "mesa-git",
+      "mesa-big",
+      "lib32-mesa-big",
+      "mesa-tkg-stable",
+      "lib32-mesa-tkg-stable",
+      "mesa-tkg-git",
+      "lib32-mesa-tkg-git",
+      "lib32-mesa-git"
     ],
     "description": "Regular Mesa release (recommended)"
   },
   {
-    "id": "big",
-    "name": "Big",
-    "detect_package": "mesa-big",
-    "packages": ["mesa-big", "lib32-mesa-big"],
-    "conflicts": [
-      "mesa", "lib32-mesa", "mesa-amber", "lib32-mesa-amber", "mesa-git",
-      "mesa-tkg-stable", "lib32-mesa-tkg-stable",
-      "mesa-tkg-git", "lib32-mesa-tkg-git",
-      "vulkan-intel", "lib32-vulkan-intel", "vulkan-radeon", "lib32-vulkan-radeon",
-      "vulkan-nouveau", "lib32-vulkan-nouveau", "vulkan-virtio", "lib32-vulkan-virtio",
-      "vulkan-mesa-layers", "lib32-vulkan-mesa-layers",
-      "vulkan-mesa-implicit-layers", "lib32-vulkan-mesa-implicit-layers"
+    "id": "git",
+    "name": "Development",
+    "detect_package": "mesa-git",
+    "packages": [
+      "mesa-git",
+      "lib32-mesa-git"
     ],
-    "description": "BigCommunity build of the latest Mesa release, with its own LLVM"
-  },
-  {
-    "id": "tkg-stable",
-    "name": "Tkg-Stable",
-    "detect_package": "mesa-tkg-stable",
-    "packages": ["mesa-tkg-stable", "lib32-mesa-tkg-stable"],
     "conflicts": [
-      "mesa", "lib32-mesa", "mesa-amber", "lib32-mesa-amber", "mesa-git", "mesa-big", "lib32-mesa-big",
-      "mesa-tkg-git", "lib32-mesa-tkg-git",
-      "vulkan-intel", "lib32-vulkan-intel", "vulkan-radeon", "lib32-vulkan-radeon",
-      "vulkan-nouveau", "lib32-vulkan-nouveau",
-      "vulkan-swrast", "lib32-vulkan-swrast",
-      "vulkan-mesa-layers", "lib32-vulkan-mesa-layers",
-      "vulkan-mesa-implicit-layers", "lib32-vulkan-mesa-implicit-layers"
-    ],
-    "description": "Enhanced performance build of stable Mesa"
-  },
-  {
-    "id": "tkg-git",
-    "name": "Tkg-git",
-    "detect_package": "mesa-tkg-git",
-    "packages": ["mesa-tkg-git", "lib32-mesa-tkg-git"],
-    "conflicts": [
-      "mesa", "lib32-mesa", "mesa-amber", "lib32-mesa-amber", "mesa-git", "mesa-big", "lib32-mesa-big",
-      "mesa-tkg-stable", "lib32-mesa-tkg-stable",
-      "vulkan-intel", "lib32-vulkan-intel", "vulkan-radeon", "lib32-vulkan-radeon",
-      "vulkan-nouveau", "lib32-vulkan-nouveau",
-      "vulkan-swrast", "lib32-vulkan-swrast",
-      "vulkan-mesa-layers", "lib32-vulkan-mesa-layers",
-      "vulkan-mesa-implicit-layers", "lib32-vulkan-mesa-implicit-layers"
+      "mesa",
+      "vulkan-intel",
+      "vulkan-radeon",
+      "vulkan-nouveau",
+      "vulkan-mesa-device-select",
+      "vulkan-mesa-layers",
+      "mesa-vulkan-layers",
+      "libva-mesa-driver",
+      "opencl-mesa",
+      "vulkan-swrast",
+      "lib32-mesa",
+      "lib32-vulkan-intel",
+      "lib32-vulkan-radeon",
+      "lib32-vulkan-nouveau",
+      "lib32-vulkan-mesa-device-select",
+      "lib32-vulkan-mesa-layers",
+      "lib32-mesa-vulkan-layers",
+      "lib32-libva-mesa-driver",
+      "lib32-opencl-mesa",
+      "lib32-vulkan-swrast",
+      "mesa-amber",
+      "lib32-mesa-amber"
     ],
     "description": "Latest development version with cutting-edge features"
+  },
+  {
+    "id": "amber",
+    "name": "Amber",
+    "detect_package": "mesa-amber",
+    "packages": [
+      "mesa-amber",
+      "lib32-mesa-amber"
+    ],
+    "conflicts": [
+      "mesa",
+      "lib32-mesa",
+      "mesa-git",
+      "mesa-big",
+      "lib32-mesa-big",
+      "mesa-tkg-stable",
+      "lib32-mesa-tkg-stable",
+      "mesa-tkg-git",
+      "lib32-mesa-tkg-git",
+      "lib32-mesa-git"
+    ],
+    "description": "Stable and well-tested version of Mesa"
   }
 ]

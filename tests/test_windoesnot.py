@@ -9,6 +9,10 @@ from core import chwd
 from core.desktop import parse_preferences
 from core.privileged import cli_to_pacman, PrivilegedRequestError
 from core.kernel_manager import KernelManager
+from core.gpu_drivers import GpuDriverManager, VideoDriver
+from core.mesa_manager import MesaManager
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'biglinux-driver-manager/usr/share/big-driver-manager'))
+from ui.mesa_data import _visible_mesa_variants
 
 TABLE = '''> 0000:00:02.0 (0300:8086:a780) VGA controller
 │ intel ┆ 4 │
@@ -36,6 +40,42 @@ class IntegrationTests(unittest.TestCase):
         with patch.object(manager, '_search_kernel_packages', return_value=[]), \
              patch.object(manager, 'get_installed_kernels', return_value=installed):
             self.assertEqual(manager.get_available_kernels(), installed)
+
+    @patch.object(chwd.subprocess, 'run', return_value=Mock(returncode=0))
+    @patch.object(chwd, 'profiles', side_effect=[{'intel':4}, {'intel':4}])
+    def test_remove_uses_native_chwd_without_package_update(self, profiles, run):
+        self.assertEqual(chwd.remove('intel'), 0)
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(run.call_args.args[0], ['/usr/bin/chwd', '--remove', 'intel'])
+
+    @patch.object(chwd.subprocess, 'run')
+    @patch.object(chwd, 'profiles', return_value={'intel':4})
+    def test_invalid_removal_never_writes(self, profiles, run):
+        for name in ('--remove', 'intel;reboot', '../intel', 'missing'):
+            with self.assertRaises(ValueError): chwd.remove(name)
+        run.assert_not_called()
+
+    @patch.object(chwd.subprocess, 'run')
+    @patch.object(chwd, 'profiles', side_effect=[{'intel':4}, {}])
+    def test_uninstalled_profile_cannot_be_removed(self, profiles, run):
+        with self.assertRaises(ValueError): chwd.remove('intel')
+        run.assert_not_called()
+
+    def test_gui_removal_routes_to_chwd_profile(self):
+        manager = GpuDriverManager()
+        with patch.object(manager, 'run_cli_command') as run:
+            manager.remove_driver(VideoDriver(name='chwd:intel', installed=True))
+        self.assertEqual(run.call_args.args[0], ['profile', 'remove', 'intel'])
+
+    def test_mesa_choices_use_cachyos_packages_and_real_install_status(self):
+        manager = MesaManager()
+        drivers = manager.get_available_drivers(installed_set={'mesa-git', 'lib32-mesa-git'})
+        self.assertEqual({d['id'] for d in drivers}, {'stable', 'git', 'amber'})
+        self.assertEqual([d['id'] for d in drivers if d['active']], ['git'])
+        self.assertEqual([d['id'] for d in _visible_mesa_variants(drivers, None)], ['git'])
+        self.assertEqual([d['id'] for d in _visible_mesa_variants(drivers, set())], ['git'])
+        self.assertEqual({d['id'] for d in _visible_mesa_variants(drivers, {'mesa'})}, {'git', 'stable'})
+        self.assertIn('lib32-mesa-git', manager.find_driver('stable')['conflicts'])
 
     def test_preferences_are_data(self):
         self.assertEqual(parse_preferences('darkMode=false\naccentColor=#FE6F2D\nuiLanguage=de'),

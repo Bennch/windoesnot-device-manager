@@ -43,3 +43,10 @@ def install(name):
     if name in profiles(installed=True):
         args.append('--force')
     return subprocess.run([*args, '--install', name], env=subprocess_env()).returncode
+
+
+def remove(name):
+    if (not PROFILE.fullmatch(name) or name not in profiles()
+            or name not in profiles(installed=True)):
+        raise ValueError('Select an installed CachyOS graphics profile')
+    return subprocess.run([CHWD, '--remove', name], env=subprocess_env()).returncode

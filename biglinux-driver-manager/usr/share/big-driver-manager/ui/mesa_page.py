@@ -1108,6 +1108,11 @@ class MesaSection(PackageOperationMixin, BaseSection):
             btn.set_valign(Gtk.Align.CENTER)
             btn.connect("clicked", self._on_mhwd_install_clicked, driver)
             row.append(btn)
+            remove_btn = Gtk.Button(label=_("Remove"))
+            remove_btn.add_css_class("destructive-action")
+            remove_btn.set_valign(Gtk.Align.CENTER)
+            remove_btn.connect("clicked", self._on_mhwd_remove_clicked, driver)
+            row.append(remove_btn)
         elif driver.installed:
             rm_btn = Gtk.Button(label=_("Remove"))
             rm_btn.add_css_class("destructive-action")
@@ -1442,7 +1447,7 @@ class MesaSection(PackageOperationMixin, BaseSection):
 
     def _is_available(self, name: str) -> bool:
         """True when *name* can be installed from the enabled repositories."""
-        return self._repo_set is None or name in self._repo_set
+        return self._repo_set is not None and name in self._repo_set
 
     @staticmethod
     def _mark_unavailable(btn: Gtk.Button) -> None:

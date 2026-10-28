@@ -20,10 +20,10 @@ from core.mesa_manager import (
     plan_mesa_switch,
 )
 
-TKG = {
-    "id": "tkg-stable",
-    "name": "Tkg-Stable",
-    "packages": ["mesa-tkg-stable", "lib32-mesa-tkg-stable"],
+DEVELOPMENT = {
+    "id": "git",
+    "name": "Development",
+    "packages": ["mesa-git", "lib32-mesa-git"],
     "conflicts": [
         "mesa",
         "lib32-mesa",
@@ -33,13 +33,13 @@ TKG = {
     ],
 }
 
-# What mesa-tkg-stable's PKGBUILD declares.
-TKG_INFO = {
-    "mesa-tkg-stable": {
+# What mesa-git's PKGBUILD declares.
+DEVELOPMENT_INFO = {
+    "mesa-git": {
         "Provides": ["mesa=26.2.2-1", "vulkan-intel=26.2.2-1", "opengl-driver"],
         "Conflicts With": ["mesa", "vulkan-intel", "vulkan-mesa-layers"],
     },
-    "lib32-mesa-tkg-stable": {
+    "lib32-mesa-git": {
         "Provides": ["lib32-mesa=26.2.2-1"],
         "Conflicts With": ["lib32-mesa"],
     },
@@ -63,10 +63,10 @@ INSTALLED = set(INSTALLED_INFO)
 
 def _plan(**overrides):
     kwargs = {
-        "driver": TKG,
+        "driver": DEVELOPMENT,
         "installed": INSTALLED,
-        "available": {"mesa-tkg-stable", "lib32-mesa-tkg-stable"},
-        "target_info": TKG_INFO,
+        "available": {"mesa-git", "lib32-mesa-git"},
+        "target_info": DEVELOPMENT_INFO,
         "installed_info": INSTALLED_INFO,
     }
     kwargs.update(overrides)
@@ -77,7 +77,7 @@ class TestPlan(unittest.TestCase):
     def test_declared_conflicts_are_replaced_by_pacman(self):
         plan = _plan()
         self.assertTrue(plan.allowed, plan.problems)
-        self.assertEqual(plan.install, ["mesa-tkg-stable", "lib32-mesa-tkg-stable"])
+        self.assertEqual(plan.install, ["mesa-git", "lib32-mesa-git"])
         self.assertEqual(plan.replaced, ["mesa", "lib32-mesa", "vulkan-intel"])
 
     def test_undeclared_conflict_goes_first_only_when_its_users_leave_too(self):
@@ -130,37 +130,37 @@ class TestPlan(unittest.TestCase):
         self.assertTrue(plan.allowed, plan.problems)
 
     def test_missing_main_package_refuses(self):
-        plan = _plan(available={"lib32-mesa-tkg-stable"})
+        plan = _plan(available={"lib32-mesa-git"})
         self.assertFalse(plan.allowed)
 
     def test_missing_lib32_refuses_when_32_bit_mesa_is_installed(self):
         # Removing lib32-mesa without its tkg twin would take Steam with it.
-        plan = _plan(available={"mesa-tkg-stable"})
+        plan = _plan(available={"mesa-git"})
         self.assertFalse(plan.allowed)
-        self.assertIn("lib32-mesa-tkg-stable", plan.problems[0])
+        self.assertIn("lib32-mesa-git", plan.problems[0])
 
     def test_missing_lib32_is_skipped_without_32_bit_mesa(self):
         installed = {p for p in INSTALLED if not p.startswith("lib32-")}
-        plan = _plan(installed=installed, available={"mesa-tkg-stable"})
+        plan = _plan(installed=installed, available={"mesa-git"})
         self.assertTrue(plan.allowed, plan.problems)
-        self.assertEqual(plan.skipped, ["lib32-mesa-tkg-stable"])
+        self.assertEqual(plan.skipped, ["lib32-mesa-git"])
 
     def test_conflict_declared_by_the_installed_package_counts(self):
-        # Back to stable: mesa does not name mesa-tkg-stable, but
-        # mesa-tkg-stable conflicts with mesa, so pacman replaces it.
+        # Back to stable: mesa does not name mesa-git, but
+        # mesa-git conflicts with mesa, so pacman replaces it.
         stable = {
             "id": "stable",
             "name": "Stable",
             "packages": ["mesa"],
-            "conflicts": ["mesa-tkg-stable"],
+            "conflicts": ["mesa-git"],
         }
         plan = plan_mesa_switch(
             stable,
-            {"mesa-tkg-stable", "kwin"},
+            {"mesa-git", "kwin"},
             {"mesa"},
             {"mesa": {"Provides": [], "Conflicts With": []}},
             {
-                "mesa-tkg-stable": {
+                "mesa-git": {
                     "Provides": ["mesa=26.2.2-1"],
                     "Conflicts With": ["mesa"],
                 },
@@ -168,22 +168,22 @@ class TestPlan(unittest.TestCase):
             },
         )
         self.assertTrue(plan.allowed, plan.problems)
-        self.assertEqual(plan.replaced, ["mesa-tkg-stable"])
+        self.assertEqual(plan.replaced, ["mesa-git"])
         self.assertEqual(plan.remove_first, [])
 
-    def test_big_replaces_both_halves_of_mesa(self):
-        # mesa-big and lib32-mesa-big declare what they replace, so pacman
+    def test_git_replaces_both_halves_of_mesa(self):
+        # mesa-git and lib32-mesa-git declare what they replace, so pacman
         # swaps the 64-bit and 32-bit stacks in one transaction.
-        big = next(d for d in MESA_DRIVERS if d["id"] == "big")
-        names = ("mesa", "vulkan-intel", "vulkan-mesa-implicit-layers")
+        big = next(d for d in MESA_DRIVERS if d["id"] == "git")
+        names = ("mesa", "vulkan-intel", "vulkan-swrast")
         lib32 = tuple("lib32-" + n for n in names)
         big_info = {
-            "mesa-big": {
+            "mesa-git": {
                 "Provides": [f"{n}=1:26.2.5-1" for n in names] + ["vulkan-driver"],
                 "Conflicts With": list(names),
             },
-            "lib32-mesa-big": {
-                "Provides": [f"{n}=1:26.2.5-1" for n in lib32],
+            "lib32-mesa-git": {
+                "Provides": [f"{n}=1:26.2.5-1" for n in lib32] + ["lib32-vulkan-driver"],
                 "Conflicts With": list(lib32),
             },
         }
@@ -197,25 +197,25 @@ class TestPlan(unittest.TestCase):
             "Depends On": ["lib32-vulkan-mesa-implicit-layers"],
         }
         plan = plan_mesa_switch(
-            big, set(info), {"mesa-big", "lib32-mesa-big"}, big_info, info
+            big, set(info), {"mesa-git", "lib32-mesa-git"}, big_info, info
         )
         self.assertTrue(plan.allowed, plan.problems)
-        self.assertEqual(plan.install, ["mesa-big", "lib32-mesa-big"])
+        self.assertEqual(plan.install, ["mesa-git", "lib32-mesa-git"])
         self.assertEqual(sorted(plan.replaced), sorted(names + lib32))
         self.assertEqual(plan.remove_first, [])
 
-    def test_big_without_multilib_skips_the_32_bit_package(self):
-        big = next(d for d in MESA_DRIVERS if d["id"] == "big")
+    def test_git_without_multilib_skips_the_32_bit_package(self):
+        big = next(d for d in MESA_DRIVERS if d["id"] == "git")
         installed = {p for p in INSTALLED if not p.startswith("lib32-")}
         info = {p: INSTALLED_INFO[p] for p in installed}
         plan = plan_mesa_switch(
             big,
             installed,
-            {"mesa-big"},
-            {"mesa-big": {"Provides": ["mesa=1:26.2.5-1"], "Conflicts With": ["mesa"]}},
+            {"mesa-git"},
+            {"mesa-git": {"Provides": ["mesa=1:26.2.5-1"], "Conflicts With": ["mesa"]}},
             info,
         )
-        self.assertEqual(plan.skipped, ["lib32-mesa-big"])
+        self.assertEqual(plan.skipped, ["lib32-mesa-git"])
 
     def test_unknown_driver(self):
         mgr = MesaManager()
@@ -226,13 +226,13 @@ class TestPlan(unittest.TestCase):
 class TestParsePacmanInfo(unittest.TestCase):
     def test_fields_none_versions_and_wrapped_lines(self):
         out = (
-            "Name            : mesa-tkg-stable\n"
+            "Name            : mesa-git\n"
             "Provides        : mesa=26.2.2-1  vulkan-intel=26.2.2-1\n"
             "                  opengl-driver\n"
             "Conflicts With  : mesa\n"
             "Required By     : None\n"
             "\n"
-            "Name            : mesa-tkg-stable\n"
+            "Name            : mesa-git\n"
             "Provides        : other\n"
             "\n"
             "Name            : lib32-mesa\n"
@@ -240,24 +240,18 @@ class TestParsePacmanInfo(unittest.TestCase):
         )
         info = parse_pacman_info(out)
         self.assertEqual(
-            info["mesa-tkg-stable"]["Provides"],
+            info["mesa-git"]["Provides"],
             ["mesa=26.2.2-1", "vulkan-intel=26.2.2-1", "opengl-driver"],
         )
-        self.assertEqual(info["mesa-tkg-stable"]["Required By"], [])
+        self.assertEqual(info["mesa-git"]["Required By"], [])
         self.assertEqual(info["lib32-mesa"]["Required By"], ["steam"])
 
 
 class TestDriversJson(unittest.TestCase):
-    def test_tkg_variants_bring_their_32_bit_package(self):
+    def test_cachyos_git_brings_its_32_bit_package(self):
         drivers = {d["id"]: d for d in MESA_DRIVERS}
-        for variant in ("tkg-stable", "tkg-git"):
-            with self.subTest(variant=variant):
-                packages = drivers[variant]["packages"]
-                self.assertIn("lib32-mesa-" + variant, packages)
-
-    def test_big_brings_its_32_bit_package(self):
-        drivers = {d["id"]: d for d in MESA_DRIVERS}
-        self.assertEqual(drivers["big"]["packages"], ["mesa-big", "lib32-mesa-big"])
+        self.assertEqual(set(drivers), {"stable", "git", "amber"})
+        self.assertEqual(drivers["git"]["packages"], ["mesa-git", "lib32-mesa-git"])
 
     def test_every_variant_conflicts_with_the_32_bit_packages_of_the_others(self):
         drivers = {d["id"]: d for d in MESA_DRIVERS}
@@ -316,8 +310,8 @@ class TestSwitch(unittest.TestCase):
                     "--noconfirm",
                     "--ask",
                     "4",
-                    "mesa-tkg-stable",
-                    "lib32-mesa-tkg-stable",
+                    "mesa-git",
+                    "lib32-mesa-git",
                 ],
                 ["-Rdd", "--noconfirm", "vulkan-mesa-implicit-layers"],
                 [
@@ -326,8 +320,8 @@ class TestSwitch(unittest.TestCase):
                     "--needed",
                     "--ask",
                     "4",
-                    "mesa-tkg-stable",
-                    "lib32-mesa-tkg-stable",
+                    "mesa-git",
+                    "lib32-mesa-git",
                 ],
             ],
         )
@@ -359,7 +353,7 @@ class TestCli(unittest.TestCase):
     def _args(self, **kw):
         base = {
             "mesa_action": "apply",
-            "variant": "tkg-stable",
+            "variant": "git",
             "yes": True,
             "confirmed": False,
         }
@@ -384,7 +378,7 @@ class TestCli(unittest.TestCase):
             patch.object(mesa_cli.kernel_cli, "elevate", return_value=0) as elevate,
         ):
             mesa_cli.run(self._args())
-        elevate.assert_called_once_with(["mesa", "apply", "tkg-stable", "--confirmed"])
+        elevate.assert_called_once_with(["mesa", "apply", "git", "--confirmed"])
 
     def test_plan_json(self):
         with (
@@ -392,7 +386,7 @@ class TestCli(unittest.TestCase):
             patch("builtins.print") as printed,
         ):
             code = mesa_cli.run(
-                argparse.Namespace(mesa_action="plan", variant="tkg-stable", json=True)
+                argparse.Namespace(mesa_action="plan", variant="git", json=True)
             )
         self.assertEqual(code, mesa_cli.EXIT_OK)
         data = json.loads(printed.call_args.args[0])
