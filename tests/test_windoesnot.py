@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'big-driver-manager
 from core import chwd
 from core.desktop import parse_preferences
 from core.privileged import cli_to_pacman, PrivilegedRequestError
+from core.kernel_manager import KernelManager
 
 TABLE = '''> 0000:00:02.0 (0300:8086:a780) VGA controller
 │ intel ┆ 4 │
@@ -19,6 +20,13 @@ TABLE = '''> 0000:00:02.0 (0300:8086:a780) VGA controller
 '''
 
 class IntegrationTests(unittest.TestCase):
+    def test_no_repository_data_does_not_mark_lts_obsolete(self):
+        installed = [{'name': 'linux-cachyos'}, {'name': 'linux-cachyos-lts'}]
+        for available in ([], [{'name': 'custom-kernel', 'source': 'local'}]):
+            self.assertEqual(KernelManager.compute_obsolete_kernels(installed, available, 'linux-cachyos'), [])
+        obsolete = KernelManager.compute_obsolete_kernels(installed, [{'name': 'linux-cachyos'}], 'linux-cachyos')
+        self.assertEqual([k['name'] for k in obsolete], ['linux-cachyos-lts'])
+
     def test_preferences_are_data(self):
         self.assertEqual(parse_preferences('darkMode=false\naccentColor=#FE6F2D\nuiLanguage=de'),
                          dict(dark=False, accent='#fe6f2d', language='de'))

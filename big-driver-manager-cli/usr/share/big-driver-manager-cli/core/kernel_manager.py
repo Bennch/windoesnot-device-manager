@@ -559,6 +559,10 @@ class KernelManager(BaseManager):
         The running kernel is never flagged as obsolete even if its package
         is missing from the repos (removing it would soft-brick the system).
         """
+        # A fresh/offline image has no sync database. Missing repository data
+        # is unknown availability, never evidence that a kernel is obsolete.
+        if not any(k.get("source") not in ("local", "manual") for k in available):
+            return []
         available_names = {k["name"] for k in available}
         obsolete: list[KernelInfo] = []
         for kernel in installed:

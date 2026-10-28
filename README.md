@@ -19,6 +19,15 @@ from `$XDG_CONFIG_HOME/quickshell/default/settings.txt` (or `~/.config/...`).
 The desktop language is used when starting the application. Without desktop
 preferences, the system's appearance and language are used.
 
+## Screenshots
+
+German interface, dark appearance. Hardware details and recommendations depend
+on the computer; these are captures of the running GTK interface.
+
+![WinDoesNot Device Manager, dark appearance](docs/screenshots/home-dark.png)
+
+[Light appearance](docs/screenshots/home-light.png)
+
 ## Packaging
 
 `pkgbuild/PKGBUILD` creates separate GUI and privileged core packages from an
