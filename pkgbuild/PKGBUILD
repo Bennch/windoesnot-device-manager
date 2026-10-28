@@ -2,7 +2,7 @@
 pkgbase=windoesnot-device-manager
 pkgname=(windoesnot-device-manager-core windoesnot-device-manager)
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 arch=(any)
 url='https://github.com/Bennch/windoesnot-device-manager'
 license=(MIT GPL-3.0-or-later)

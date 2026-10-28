@@ -12,7 +12,9 @@ selection includes CachyOS kernels. AUR-only hardware packages are identified;
 install them through WinDoesNot Store. Installations include a full system update;
 pacman's normal package pins and dependency checks remain in force.
 
-The interface follows WinDoesNot Store's light/dark palette and accent color live
+The interface shares WinDoesNot Store's wordmark, 250-pixel sidebar, navigation
+indicator, headings, card borders, button shapes and spacing. It follows the
+Store's light/dark palette and accent color live
 from `$XDG_CONFIG_HOME/quickshell/default/settings.txt` (or `~/.config/...`).
 The desktop language is used when starting the application. Without desktop
 preferences, the system's appearance and language are used.

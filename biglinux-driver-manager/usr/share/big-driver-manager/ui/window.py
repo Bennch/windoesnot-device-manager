@@ -8,6 +8,7 @@ Sidebar navigation using Adw.NavigationSplitView:
   Sidebar categories → Content pages (Stack)
 """
 
+import os
 import threading
 from types import SimpleNamespace
 
@@ -195,8 +196,8 @@ class KernelManagerWindow(Adw.ApplicationWindow):
 
         # === SPLIT VIEW ===
         self._split_view = Adw.NavigationSplitView()
-        self._split_view.set_min_sidebar_width(140)
-        self._split_view.set_max_sidebar_width(220)
+        self._split_view.set_min_sidebar_width(250)
+        self._split_view.set_max_sidebar_width(250)
         self._split_view.set_sidebar(sidebar_page)
         self._split_view.set_content(content_page)
 
@@ -233,31 +234,46 @@ class KernelManagerWindow(Adw.ApplicationWindow):
 
     def _build_sidebar(self) -> Adw.NavigationPage:
         """Build the navigation sidebar."""
-        sidebar_toolbar = Adw.ToolbarView()
-
-        sidebar_header = Adw.HeaderBar()
-        sidebar_title = Adw.WindowTitle.new(app_title(), "WinDoesNot")
-        sidebar_header.set_title_widget(sidebar_title)
-        sidebar_toolbar.add_top_bar(sidebar_header)
+        sidebar_toolbar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        sidebar_toolbar.add_css_class("sidebar-root")
+        brand = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        brand.add_css_class("sidebar-brand")
+        logo = Gtk.Picture()
+        logo.add_css_class("brand-logo")
+        logo.set_can_shrink(True)
+        logo.set_content_fit(Gtk.ContentFit.CONTAIN)
+        logo.set_size_request(118, 30)
+        logo.set_valign(Gtk.Align.CENTER)
+        def update_logo(*_args):
+            variant = "hell" if Adw.StyleManager.get_default().get_dark() else "dunkel"
+            logo.set_filename(os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "brand", f"windoesnot-logo-{variant}.png"))
+        Adw.StyleManager.get_default().connect("notify::dark", update_logo)
+        update_logo()
+        brand.append(logo)
+        title = Gtk.Label(label="Geräte" if app_title() == "Geräte-Manager" else "Devices")
+        title.add_css_class("sidebar-brand-title")
+        title.set_xalign(0)
+        brand.append(title)
+        sidebar_toolbar.append(brand)
 
         sidebar_scroll = Gtk.ScrolledWindow()
         sidebar_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         sidebar_scroll.set_vexpand(True)
 
-        self._sidebar_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self._sidebar_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         self._sidebar_box.add_css_class("sidebar-nav")
-        self._sidebar_box.set_margin_start(8)
-        self._sidebar_box.set_margin_end(8)
-        self._sidebar_box.set_margin_top(8)
+        self._sidebar_box.set_margin_start(10)
+        self._sidebar_box.set_margin_end(10)
+        self._sidebar_box.set_margin_top(0)
         self._sidebar_box.set_margin_bottom(8)
         self._sidebar_box.update_property(
             [Gtk.AccessibleProperty.LABEL], [_("Categories")]
         )
 
         _SIDEBAR_ITEMS = [
-            ("welcome", "go-home-symbolic", _("Home")),
-            ("installed", "emblem-default-symbolic", _("Installed")),
-            ("kernel", "utilities-terminal-symbolic", _("Kernel")),
+            ("welcome", "go-home-symbolic", "Start" if app_title() == "Geräte-Manager" else "Home"),
+            ("installed", "view-app-grid-symbolic", _("Installed")),
+            ("kernel", "preferences-system-symbolic", _("Kernel")),
             ("video", "video-display-symbolic", _("Video")),
         ] + [
             (cat_id, icon, title)
@@ -275,14 +291,20 @@ class KernelManagerWindow(Adw.ApplicationWindow):
             btn.set_tooltip_text(label_text)
             btn.update_property([Gtk.AccessibleProperty.LABEL], [label_text])
             box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            indicator = Gtk.Box()
+            indicator.add_css_class("nav-indicator")
+            indicator.set_size_request(3, 22)
+            indicator.set_valign(Gtk.Align.CENTER)
+            box.append(indicator)
             box.set_margin_start(4)
             box.set_margin_end(4)
             box.set_margin_top(6)
             box.set_margin_bottom(6)
             icon = Gtk.Image.new_from_icon_name(icon_name)
-            icon.set_pixel_size(18)
+            icon.set_pixel_size(16)
             box.append(icon)
             lbl = Gtk.Label(label=label_text)
+            lbl.add_css_class("nav-label")
             lbl.set_halign(Gtk.Align.START)
             lbl.set_hexpand(True)
             box.append(lbl)
@@ -292,7 +314,7 @@ class KernelManagerWindow(Adw.ApplicationWindow):
             self._sidebar_box.append(btn)
 
         sidebar_scroll.set_child(self._sidebar_box)
-        sidebar_toolbar.set_content(sidebar_scroll)
+        sidebar_toolbar.append(sidebar_scroll)
         return Adw.NavigationPage.new(sidebar_toolbar, _("Categories"))
 
     def _build_content_stack(self) -> Adw.NavigationPage:
@@ -322,26 +344,26 @@ class KernelManagerWindow(Adw.ApplicationWindow):
 
         self._home = HomePage(on_navigate=self._navigate_to)
         self._stack.add_titled(
-            self._wrap_scroll(self._home, clamp=900), "welcome", _("Home")
+            self._wrap_scroll(self._home, margin=30), "welcome", _("Home")
         )
 
         self._installed_page = InstalledPage()
         self._stack.add_titled(
-            self._wrap_scroll(self._installed_page, clamp=1200, margin=32),
+            self._wrap_scroll(self._installed_page, margin=30),
             "installed",
             _("Installed"),
         )
 
         self.kernel_section = KernelSection()
         self._stack.add_titled(
-            self._wrap_scroll(self.kernel_section, clamp=1200, margin=32),
+            self._wrap_scroll(self.kernel_section, margin=30),
             "kernel",
             _("Kernel"),
         )
 
         self.mesa_section = MesaSection()
         self._stack.add_titled(
-            self._wrap_scroll(self.mesa_section, clamp=1200, margin=32),
+            self._wrap_scroll(self.mesa_section, margin=30),
             "video",
             _("Video"),
         )
@@ -356,7 +378,7 @@ class KernelManagerWindow(Adw.ApplicationWindow):
                 category_id=cat_id,
             )
             self._stack.add_titled(
-                self._wrap_scroll(section, clamp=1200, margin=32), cat_id, cat_title
+                self._wrap_scroll(section, margin=30), cat_id, cat_title
             )
             self._category_sections[cat_id] = section
 
@@ -402,15 +424,19 @@ class KernelManagerWindow(Adw.ApplicationWindow):
         scroll.set_child(target)
         return scroll
 
-    def _create_content_header(self) -> Adw.HeaderBar:
-        header = Adw.HeaderBar()
-        header.set_show_title(True)
+    def _create_content_header(self) -> Gtk.Box:
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        header.add_css_class("page-header")
+        self._page_title = Gtk.Label(xalign=0)
+        self._page_title.add_css_class("page-title")
+        self._page_title.set_hexpand(True)
+        header.append(self._page_title)
 
-        # Centered title widget with description + switch
+        # Optional driver filter beside the Store-style page heading
         center_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         center_box.set_halign(Gtk.Align.FILL)
         center_box.set_valign(Gtk.Align.CENTER)
-        center_box.set_hexpand(True)
+        center_box.set_hexpand(False)
 
         self._show_all_label = Gtk.Label()
         self._show_all_label.set_label(
@@ -433,7 +459,7 @@ class KernelManagerWindow(Adw.ApplicationWindow):
 
         self._show_all_box = center_box
         self._show_all_box.set_visible(False)
-        header.set_title_widget(self._show_all_box)
+        header.append(self._show_all_box)
 
         # Menu (rightmost)
         menu_btn = Gtk.MenuButton()
@@ -445,7 +471,7 @@ class KernelManagerWindow(Adw.ApplicationWindow):
         menu = Gio.Menu()
         menu.append(_("About"), "app.about")
         menu_btn.set_menu_model(menu)
-        header.pack_end(menu_btn)
+        header.append(menu_btn)
 
         self._setup_actions()
         return header
@@ -476,6 +502,7 @@ class KernelManagerWindow(Adw.ApplicationWindow):
             for current_page, button in self._sidebar_buttons.items():
                 button.set_active(current_page == page_id)
             self._stack.set_visible_child_name(page_id)
+            self._page_title.set_label(self._sidebar_buttons[page_id].get_tooltip_text())
             self._show_all_box.set_visible(page_id in self._DRIVER_PAGES)
             # On collapsed split view, show content pane
             self._split_view.set_show_content(True)

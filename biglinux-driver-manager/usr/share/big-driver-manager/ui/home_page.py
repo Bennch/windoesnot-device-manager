@@ -59,8 +59,8 @@ class HomePage(PackageOperationMixin, Gtk.Box):
         # Content container — hidden until detection finishes
         self._content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         self._content_box.set_visible(False)
-        self._content_box.set_margin_start(8)
-        self._content_box.set_margin_end(8)
+        self._content_box.set_margin_start(0)
+        self._content_box.set_margin_end(0)
         self.append(self._content_box)
 
         # Didactic introduction — two visual cards side by side
@@ -461,40 +461,20 @@ class HomePage(PackageOperationMixin, Gtk.Box):
         if css_variant:
             card.add_css_class(css_variant)
 
-        # Header: icon left, title centered (same line)
-        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        svg_path = os.path.join(base, "assets", "illustrations", illustration)
-        img = Gtk.Image.new_from_file(svg_path)
-        img.set_pixel_size(40)
-
-        lbl_title = Gtk.Label(label=title, xalign=0.5)
+        card.set_spacing(12)
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        # Use the desktop's symbolic icon set, as the Store navigation does.
+        icon_name = "preferences-system-symbolic" if css_variant == "intro-kernel" else "computer-symbolic"
+        img = Gtk.Image.new_from_icon_name(icon_name)
+        img.set_pixel_size(32)
+        header.append(img)
+        lbl_title = Gtk.Label(label=title, xalign=0, wrap=True)
         lbl_title.add_css_class("title-3")
         lbl_title.set_accessible_role(Gtk.AccessibleRole.HEADING)
-
-        header = Gtk.CenterBox()
-        header.set_start_widget(img)
-        header.set_center_widget(lbl_title)
-        header.set_margin_top(14)
-        header.set_margin_start(24)
-        header.set_margin_end(24)
+        header.append(lbl_title)
         card.append(header)
-
-        # Separator accent
-        sep = Gtk.Box()
-        sep.set_size_request(40, 2)
-        sep.set_halign(Gtk.Align.CENTER)
-        sep.set_margin_top(10)
-        sep.set_margin_bottom(8)
-        sep.add_css_class("intro-sep")
-        card.append(sep)
-
-        # Description
-        lbl_desc = Gtk.Label(label=text, xalign=0.5, wrap=True)
-        lbl_desc.set_justify(Gtk.Justification.CENTER)
-        lbl_desc.set_margin_start(16)
-        lbl_desc.set_margin_end(16)
-        lbl_desc.set_margin_bottom(16)
-        lbl_desc.set_opacity(0.65)
+        lbl_desc = Gtk.Label(label=text, xalign=0, wrap=True)
+        lbl_desc.add_css_class("dim-label")
         card.append(lbl_desc)
 
         return card
